@@ -36,14 +36,16 @@ async function run() {
     res.send(reviews);
   });
 
-  app.get("/reviewsByIds", async (req, res) => {
-    // const id = req.params.id;
-    const allReviews = req.body;
+  app.get("/reviewsByID/:id", async (req, res) => {
+    const ID = req.params.id;
 
-    const filter = { _id: {} };
-    const cursor = reviewCollection.find(filter);
+    const cursor = reviewCollection.find(
+      { serviceId: { $in: [ID] } },
+      { _id: 0 }
+    );
+
     const reviews = await cursor.toArray();
-    // console.log(reviews);
+    console.log(reviews);
     res.send(reviews);
   });
 
