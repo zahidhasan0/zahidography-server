@@ -3,7 +3,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const port = process.env.PORT || 5000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 app.use(cors());
 app.use(express.json());
@@ -18,6 +18,35 @@ const client = new MongoClient(uri, {
 
 async function run() {
   const serviceCollection = client.db("Assignment-11").collection("services");
+
+  const reviewCollection = client.db("Assignment-11").collection("reviews");
+
+  app.post("/reviews", async (req, res) => {
+    const review = req.body;
+    const result = await reviewCollection.insertOne(review);
+    console.log(result);
+    res.send(result);
+  });
+
+  app.get("/reviews", async (req, res) => {
+    const query = {};
+    const cursor = reviewCollection.find(query);
+    const reviews = await cursor.toArray();
+    console.log(reviews);
+    res.send(reviews);
+  });
+
+  app.get("/reviewsByIds", async (req, res) => {
+    // const id = req.params.id;
+    const allReviews = req.body;
+
+    const filter = { _id: {} };
+    const cursor = reviewCollection.find(filter);
+    const reviews = await cursor.toArray();
+    // console.log(reviews);
+    res.send(reviews);
+  });
+
   app.get("/home-services", async (req, res) => {
     const query = {};
     const cursor = serviceCollection.find(query);
@@ -30,6 +59,14 @@ async function run() {
     const cursor = serviceCollection.find(query);
     const services = await cursor.toArray();
     res.send(services);
+  });
+
+  app.get("/services/:id", async (req, res) => {
+    const id = req.params.id;
+    console.log(id);
+    const query = { _id: ObjectId(id) };
+    const service = await serviceCollection.findOne(query);
+    res.send(service);
   });
 }
 run().catch((error) => console.error(error));
