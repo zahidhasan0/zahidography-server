@@ -28,22 +28,25 @@ async function run() {
     res.send(result);
   });
 
-  app.get("/reviews", async (req, res) => {
-    const query = {};
-    const cursor = reviewCollection.find(query);
+  app.get("/reviewsByUID/:uid", async (req, res) => {
+    // const email = req.body;
+    // console.log(email);
+    const query = req.params.uid;
+    const cursor = reviewCollection.find(
+      { userUid: { $in: [query] } },
+      { _id: 0 }
+    );
     const reviews = await cursor.toArray();
-    console.log(reviews);
+    // console.log(reviews);
     res.send(reviews);
   });
 
   app.get("/reviewsByID/:id", async (req, res) => {
     const ID = req.params.id;
-
     const cursor = reviewCollection.find(
       { serviceId: { $in: [ID] } },
       { _id: 0 }
     );
-
     const reviews = await cursor.toArray();
     console.log(reviews);
     res.send(reviews);
