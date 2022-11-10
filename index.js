@@ -64,7 +64,7 @@ async function run() {
     const query = {};
     const cursor = photosCollection.find(query);
     const photos = await cursor.toArray();
-    console.log(photos);
+    // console.log(photos);
     res.send(photos);
   });
 
@@ -157,7 +157,9 @@ async function run() {
     const body = req.body.text;
     const query = { _id: ObjectId(id) };
     const updatedReview = {
-      $set: { revirewText: body },
+      $set: {
+        revirewText: body,
+      },
     };
     // console.log(updatedReview);
     const result = await reviewCollection.updateOne(query, updatedReview);
