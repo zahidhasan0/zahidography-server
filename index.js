@@ -80,7 +80,7 @@ async function run() {
     const query = req.params.uid;
     const cursor = reviewCollection.find(
       { userUid: { $in: [query] } },
-      { _id: 0 }
+      { _id: 0 }.sort({ reviewDate: -1 }, (err, cursor) => {})
     );
     const reviews = await cursor.toArray();
     res.send(reviews);
