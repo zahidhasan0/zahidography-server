@@ -36,16 +36,14 @@ function verifyToken(req, res, next) {
 // run function
 async function run() {
   const serviceCollection = client.db("Assignment-11").collection("services");
-
   const reviewCollection = client.db("Assignment-11").collection("reviews");
-  const photosCollection = client.db("Assignment-11").collection("photos");
+  const photosCollection = client.db("Assignment-11").collection("allPhotos");
 
   app.post("/jwt", async (req, res) => {
     const user = req.body;
     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: "1d",
     });
-    console.log(token);
     res.send({ token });
   });
 
@@ -53,7 +51,6 @@ async function run() {
   app.post("/reviews", async (req, res) => {
     const review = req.body;
     const result = await reviewCollection.insertOne(review);
-    // console.log(result);
     res.send(result);
   });
 
@@ -70,16 +67,13 @@ async function run() {
     const query = {};
     const cursor = photosCollection.find(query);
     const photos = await cursor.toArray();
-    // console.log(photos);
     res.send(photos);
   });
 
   //   get reviews with uid
   app.get("/reviewsByUID/:uid", verifyToken, async (req, res) => {
     const decoded = req.decoded;
-    console.log(decoded);
     const email = req.headers.email;
-    console.log(email);
     if (decoded.email !== email) {
       return res.status(403).send({ message: "Forbiden to access" });
     }
@@ -89,7 +83,6 @@ async function run() {
       { _id: 0 }
     );
     const reviews = await cursor.toArray();
-    console.log(reviews);
     res.send(reviews);
   });
 
@@ -97,12 +90,10 @@ async function run() {
 
   app.get("/reviewsByID/:id", async (req, res) => {
     const ID = req.params.id;
-    const cursor = reviewCollection.find(
-      { serviceId: { $in: [ID] } },
-      { _id: 0 }
-    );
+    const cursor = reviewCollection
+      .find({ serviceId: { $in: [ID] } }, { _id: 0 })
+      .sort({ reviewDate: -1 }, (err, cursor) => {});
     const reviews = await cursor.toArray();
-    // console.log(reviews);
     res.send(reviews);
   });
 
@@ -117,16 +108,22 @@ async function run() {
   //   get all services
   app.get("/services", async (req, res) => {
     const query = {};
+    const page = req.query.page;
+    const size = parseInt(req.query.size);
+    console.log(page, size);
     const cursor = serviceCollection.find(query);
-    const services = await cursor.toArray();
-    res.send(services);
+    const count = await serviceCollection.estimatedDocumentCount();
+    const services = await cursor
+      .skip(page * size)
+      .limit(size)
+      .toArray();
+    res.send({ count, services });
   });
 
   //   get single service
 
   app.get("/services/:id", async (req, res) => {
     const id = req.params.id;
-    // console.log(id);
     const query = { _id: ObjectId(id) };
     const service = await serviceCollection.findOne(query);
     res.send(service);
@@ -138,7 +135,6 @@ async function run() {
     const id = req.params.id;
     const query = { _id: ObjectId(id) };
     const review = await reviewCollection.findOne(query);
-    // console.log(review);
     res.send(review);
   });
 
@@ -151,9 +147,7 @@ async function run() {
         revirewText: body,
       },
     };
-
     const result = await reviewCollection.updateOne(query, updatedReview);
-
     res.send(result);
   });
 
@@ -161,7 +155,6 @@ async function run() {
     const id = req.params.id;
     const query = { _id: ObjectId(id) };
     const result = await reviewCollection.deleteOne(query);
-
     res.send(result);
   });
 }
