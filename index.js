@@ -17,6 +17,7 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+// middleware
 function verifyToken(req, res, next) {
   const authorization = req.headers.authorization;
   if (!authorization) {
@@ -32,6 +33,7 @@ function verifyToken(req, res, next) {
   });
 }
 
+// run function
 async function run() {
   const serviceCollection = client.db("Assignment-11").collection("services");
 
@@ -47,6 +49,7 @@ async function run() {
     res.send({ token });
   });
 
+  //   add review
   app.post("/reviews", async (req, res) => {
     const review = req.body;
     const result = await reviewCollection.insertOne(review);
@@ -54,12 +57,15 @@ async function run() {
     res.send(result);
   });
 
+  //   add service
   app.post("/services", async (req, res) => {
     const service = req.body;
     const result = await serviceCollection.insertOne(service);
     console.log(result);
     res.send(result);
   });
+
+  //   get Photos
   app.get("/photos", async (req, res) => {
     const query = {};
     const cursor = photosCollection.find(query);
@@ -87,6 +93,8 @@ async function run() {
     res.send(reviews);
   });
 
+  //   filter review by id
+
   app.get("/reviewsByID/:id", async (req, res) => {
     const ID = req.params.id;
     const cursor = reviewCollection.find(
@@ -98,6 +106,7 @@ async function run() {
     res.send(reviews);
   });
 
+  //   get home page services
   app.get("/home-services", async (req, res) => {
     const query = {};
     const cursor = serviceCollection.find(query);
@@ -105,12 +114,15 @@ async function run() {
     res.send(services);
   });
 
+  //   get all services
   app.get("/services", async (req, res) => {
     const query = {};
     const cursor = serviceCollection.find(query);
     const services = await cursor.toArray();
     res.send(services);
   });
+
+  //   get single service
 
   app.get("/services/:id", async (req, res) => {
     const id = req.params.id;
@@ -120,6 +132,8 @@ async function run() {
     res.send(service);
   });
 
+  //   get single review
+
   app.get("/reviews/:id", async (req, res) => {
     const id = req.params.id;
     const query = { _id: ObjectId(id) };
@@ -127,30 +141,6 @@ async function run() {
     // console.log(review);
     res.send(review);
   });
-
-  //   app.get("/reviews", verifyToken, async (req, res) => {
-  //     const decoded = req.decoded;
-  //     console.log(decoded);
-  //     if (decoded.email !== req.query.email) {
-  //       res.status(403).send({ message: "unatuthorized access" });
-  //     }
-  //     let query = {};
-  //     // console.log(req.headers.authorization);
-  //     console.log(req.query.email);
-  //     if (req.query.email) {
-  //       query = { email: req.query.email };
-  //     }
-  //     const cursor = reviewCollection.find(query);
-  //     const allReviews = await cursor.toArray();
-  //     res.send(allReviews);
-  //   });
-
-  // app.get("/reviews", async (req, res) => {
-  //   const query = {};
-  //   const cursor = reviewCollection.find(query);
-  //   const allReviews = await cursor.toArray();
-  //   res.send(allReviews);
-  // });
 
   app.put("/reviews/:id", async (req, res) => {
     const id = req.params.id;
@@ -161,9 +151,9 @@ async function run() {
         revirewText: body,
       },
     };
-    // console.log(updatedReview);
+
     const result = await reviewCollection.updateOne(query, updatedReview);
-    // console.log(result);
+
     res.send(result);
   });
 
@@ -171,18 +161,13 @@ async function run() {
     const id = req.params.id;
     const query = { _id: ObjectId(id) };
     const result = await reviewCollection.deleteOne(query);
-    // console.log(result);
+
     res.send(result);
   });
 }
 run().catch((error) => console.error(error));
 
-// client.connect((err) => {
-//   const collection = client.db("test").collection("devices");
-//   // perform actions on the collection object
-//   client.close();
-// });
-
+// testing api
 app.get("/", (req, res) => {
   res.send("this is the server and it is running. Alhamdulillah");
 });
